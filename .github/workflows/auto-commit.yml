@@ -1,0 +1,41 @@
+name: Random Auto Commits
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Runs roughly every 6 hours
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  auto-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Random Commits Script
+        run: |
+          #!/bin/bash
+          # Configure Git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Randomly pick between 2 and 4 commits
+          num_commits=$(( (RANDOM % 3) + 2 ))
+          echo "Planning to make $num_commits commits."
+
+          for i in $(seq 1 $num_commits); do
+            # Add a random line to a file
+            echo "Commit $i at $(date) with random value $RANDOM" >> activity.log
+            
+            # Commit the change
+            git add activity.log
+            git commit -m "Automated random activity $RANDOM"
+          done
+          
+          # Push the changes
+          git push
